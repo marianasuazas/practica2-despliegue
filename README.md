@@ -4,7 +4,11 @@ API REST de productos contenerizada con Docker y desplegada en Kubernetes local.
 
 ## Integrantes
 
-- Pendiente: nombres completos de los integrantes
+- Daniel Zapata Ramírez
+- María Paulina Vargas Lenis
+- Mariana Suaza Serna
+- Leonel Antonio Martínez Silgado
+- Sebastián Ciro Medellín 
 
 ## Tecnología utilizada
 
@@ -39,6 +43,16 @@ Desde la raíz del repositorio:
 Puertos: 8080 en el host y 8080 dentro del contenedor.
 
 Para probar la API abrir http://localhost:8080/swagger en el navegador.
+
+Ejemplo de JSON para POST api/Productos
+
+    {
+      "id": 5,
+      "nombre": "Pantalla",
+      "precio": 500000,
+      "stock": 10
+    }
+
 
 ## Parte 2 · Kubernetes
 
