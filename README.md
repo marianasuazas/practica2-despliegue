@@ -161,6 +161,35 @@ Y listo, como ven en la imagen, ya la API está respondiendo perfectamente dentr
 
 ---
 
+
+
+## Reflexión técnica
+
+### ¿Cómo abordamos el proceso de despliegue?
+
+Lo hicimos de forma incremental, en el orden que plantea la práctica: **API → Docker → Kubernetes**. Primero construimos una API REST de productos en **.NET 10** (ASP.NET Core Web API con controladores) con datos en memoria. Así nos podíamos concentrar en el despliegue y no en la persistencia. Antes de contenerizarla verificamos los cinco endpoints CRUD con Swagger. Después escribimos el `Dockerfile`, construimos la imagen `practica2-api:v1` y la ejecutamos con `docker run -p 8080:8080` para validar que respondía en `localhost:8080/swagger`. Cuando confirmamos que la imagen funcionaba, la reutilizamos en el clúster local de Kubernetes de Docker Desktop. Para eso creamos tres manifiestos separados (`namespace.yaml`, `deployment.yaml` y `service.yaml`) y los aplicamos con `kubectl apply`. Por último, comprobamos el resultado con `kubectl get pods` y `kubectl get svc` en el namespace `practica2` y probamos la API desde Swagger en el puerto `30080`.
+
+### ¿Qué errores encontramos y cómo los resolvimos?
+
+- **Swagger no cargaba dentro del contenedor:** ASP.NET Core solo lo habilita en el entorno *Development*, y el contenedor corre en *Production*. Lo resolvimos ajustando la configuración en `Program.cs` para que Swagger quedara disponible.
+- **El pod intentaba descargar la imagen desde Docker Hub:** esa imagen solo existía localmente. Lo corregimos con `imagePullPolicy: IfNotPresent` para que el clúster usara la imagen ya construida.
+- **Indentación de los YAML y *labels/selectors*:** si los *labels* del Deployment no coinciden con el *selector* del Service, el Service no encuentra el pod. Los revisamos con `kubectl describe` hasta que todo quedó con `app: practica2-api`.
+- **Conflicto de puertos:** como el contenedor de la Parte 1 seguía ocupando el puerto `8080`, expusimos el Service con un **NodePort** distinto (`30080`) para que las dos pruebas pudieran convivir.
+
+### ¿Cómo se distribuyeron las responsabilidades del equipo?
+
+Nos repartimos el trabajo por frentes. Una parte del equipo desarrolló la API y el modelo `Producto`. Otra se encargó del `Dockerfile` y del `.dockerignore`. Otros integrantes escribieron y validaron los manifiestos de Kubernetes, y el resto preparó el README, las evidencias y el video. Todo lo integramos en un repositorio común de GitHub, y en el video cada integrante explicó la parte que trabajó.
+
+### ¿Qué decisiones de la tecnología influyeron en el Dockerfile y en el despliegue?
+
+- **Build multietapa:** la primera etapa usa la imagen del **SDK de .NET** para restaurar dependencias, compilar y publicar, y la segunda usa solo el **runtime de ASP.NET**. Así la imagen final es mucho más liviana y no incluye el compilador ni el código fuente.
+- **Puerto 8080:** es el que .NET expone por defecto en contenedores desde la versión 8. Por eso usamos ese mismo valor en el `docker run`, en el `containerPort` y en el `targetPort` del Service.
+- **Una sola réplica:** como la API guarda los datos en memoria, con varias réplicas cada pod tendría datos distintos.
+- **Requests y limits:** definimos `100m/128Mi` y `250m/256Mi` de CPU y memoria, suficientes para una API liviana.
+- **Imagen versionada:** usamos la etiqueta `v1` para tener despliegues trazables.
+
+
+
 ## Video Demostrativo
 
 Nada, en este enlace pueden ver el video donde explicamos todo el paso a paso del despliegue:
