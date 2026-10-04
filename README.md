@@ -194,4 +194,4 @@ Nos repartimos el trabajo por frentes. Una parte del equipo desarrolló la API y
 
 Nada, en este enlace pueden ver el video donde explicamos todo el paso a paso del despliegue:
 
-- [Pendiente: Enlace al video de YouTube]
+- https://youtu.be/vRjBDgeP9LE
